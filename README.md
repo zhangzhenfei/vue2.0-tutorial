@@ -100,3 +100,97 @@ $ cd lesson/01.vue-cli
 $ npm install
 $ npm run dev
 ````
+
+## lesson02.vue-router
+这一节中，我们将学习vue，vue-router的集成和应用，做一个简单的SPA。
+首先说一下路由的概念，为什么要有前端路由呢，使用前端路由是为了把多页应用改造成单页应用，单页应用利用浏览器的地址模拟了多页应用不同地址渲染不同功能的需求，同时避免了路由跳转的时候重新请求服务端获取数据重新渲染页面。
+
+这节课的需求是：在界面上定义两个链接，点击其中一个链接渲染对应的vue子组件页面
+对于vue-router不熟的同学可以先看看概念：[vue-router](https://router.vuejs.org/zh-cn/)
+
+现在我们来分析一下，我们需要定义链接的组件应该是根组件App.vue，偷懒一下，直接把官网的demo拷进去
+````html
+<template>
+  <div id="app">
+    <img src="./assets/logo.png">
+    <p>
+      <!-- 使用 router-link 组件来导航. -->
+      <!-- 通过传入 `to` 属性指定链接. -->
+      <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
+      <router-link to="/foo">Go to Foo</router-link>
+      <router-link to="/bar">Go to Bar</router-link>
+    </p>
+    <!-- 路由出口 -->
+    <!-- 路由匹配到的组件将渲染在这里 -->
+    <router-view></router-view>
+  </div>
+</template>
+````
+
+界面定义好了，那么我们需要写两个组件：Foo&Bar，组件放在components下
+````javascript
+// Bar.vue
+<template>
+  <div>{{msg}}</div>
+</template>
+
+<script>
+export default {
+  name: 'bar',
+  data () {
+    return {
+      msg: 'bar page'
+    }
+  }
+}
+</script>
+````
+
+````javascript
+// Foo.vue
+<template>
+  <div>{{msg}}</div>
+</template>
+
+<script>
+export default {
+  name: 'foo',
+  data () {
+    return {
+      msg: 'foo page'
+    }
+  }
+}
+</script>
+````
+
+组件也定义好了，怎么把组件和路由关联起来呢，打开router/index.js，把组件注册到路由中
+````javascript
+import Vue from 'vue'
+import Router from 'vue-router'
+import Foo from '../components/Foo'
+import Bar from '../components/Bar'
+import Hello from '../components/Hello'
+
+Vue.use(Router)
+
+export default new Router({
+  routes: [
+    {
+      path: '/',
+      name: 'Hello',
+      component: Hello
+    },
+    { path: '/foo', component: Foo },
+    { path: '/bar', component: Bar }
+  ]
+})
+
+````
+
+打开项目，效果是不是出来啦
+````
+$ cd lesson/02.vue-router
+$ npm install
+$ npm run dev
+````
