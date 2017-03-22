@@ -100,6 +100,7 @@ $ cd lesson/01.vue-cli
 $ npm install
 $ npm run dev
 ````
+![01.vue-cli](./static/images/01.png)
 
 ## lesson02.vue-router
 这一节中，我们将学习vue，vue-router的集成和应用，做一个简单的SPA。
@@ -194,3 +195,4 @@ $ cd lesson/02.vue-router
 $ npm install
 $ npm run dev
 ````
+![02.vue-router](./static/images/02.png)
