@@ -42,3 +42,61 @@ $ npm run dev
 
 正常来说命令执行成功后，浏览器会自动打开[http://localhost:8080/#/](http://localhost:8080/#/)，显示模板项目的主页
 
+让我们来在模板项目上加一点官网案例，熟悉一下vue语法以及应用，项目源码放在了src目录下，这里我们可以发现项目结构如下：
+````
+|src // 源码路径
+|--assets // 静态资源
+|--components // vue组件目录
+|----Hello.vue 
+|--router // 路由目录
+|----index.js
+|--App.vue // vue root components
+|--main.js // 项目入口
+````
+分析一下App.vue文件
+````html
+<template>
+  <div id="app">
+    <img src="./assets/logo.png">
+    <router-view></router-view>
+  </div>
+</template>
+````
+可以发现Hello.vue作为App.vue的子组件，所以我们这里直接在hello.vue上写测试代码，这里我们实现一个小小的需求，界面上有两个元素，一个文本域，一个输入框，文本域的内容根据输入框的输入信息自动更新。
+
+打开Hello.vue，尝试在`<templete></templete>`中的`<div class="hello">...</div>`节点后增加一个`<div id="demo"></div>`
+界面立即响应变化，报错了，报错信息如下：
+>Component template should contain exactly one root element. If you are using v-if on multiple elements, use v-else-if to chain them instead.
+
+组件的templete不允许包含超过一个根元素，这个和react的jsx控制规则是一样的，所以我们把`<div id="demo"></div>`移动到`<div class="hello">...</div>`中，作为其子元素
+````html
+<div id="hello">
+...
+    <div id="demo">
+      <p>{{ message }}</p>
+      <input type="text" v-model="message"/>
+    </div>
+</div>
+````
+在script中，我们加了一个message，使其数据可响应
+````javascript
+export default {
+  name: 'hello',
+  data () {
+    return {
+      msg: 'Welcome to Your Vue.js App',
+      message: ''
+    }
+  }
+}
+````
+
+so，我们就完成了这个简单的需求，是不是非常easy，vue帮我们处理了数据与DOM之间的更新与变化，界面上所有的东西都可以看做是数据的映射，只要操作数据，界面会根据组件的配置自动更新，使我们能把精力放在行为和业务上，大大提高了编码生产力，同时，vue会很聪明的处理更新的队列，把同一个事物里的变化只做一次提交，而且只修改DOM变化的部分。
+
+好了，您也来试试把。
+
+````
+$ cd lesson/01.vue-cli
+$ npm install
+$ npm run dev
+````
