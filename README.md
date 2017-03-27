@@ -210,5 +210,196 @@ $ npm install
 $ npm run dev
 ````
 
+浏览器自动打开并显示主页说明初始化成功
 
+首先分析一下todos这个功能，从功能上可以划分为三个部分
+1. 头部（Header）
+2. 内容展示部分（Todos）
+   2.1 列表项（todo-item）
+3. 脚部过滤条件部分（Footer）
+
+![components.png](./static/images/04.png)
+
+![framework.png](./static/images/05.png)
+
+那么我们就先把组件定义出来
+components/Header/Header.vue
+````html
+<template>
+  <header class="header">
+    <h1>todos</h1>
+    <input 
+      class="new-todo" 
+      autofocus autocomplete="off" 
+      placeholder="What needs to be done?" >
+  </header>
+
+</template>
+
+<script>
+  export default {
+    name: 'header',
+    data () {
+      return {
+        tip: 'What needs to be done?'
+      }
+    }
+  }
+</script>
+````
+
+components/Todos/Todos.vue
+````html
+<template>
+
+  <section class="main">
+    <input class="toggle-all" type="checkbox">
+    <ul class="todo-list">
+    </ul>
+  </section>
+
+</template>
+
+<script>
+  export default {
+    name: 'todos'
+  }
+
+</script>
+````
+
+components/Footer/Footer.vue
+````html
+<template>
+  <footer class="footer">
+    <span class="todo-count">
+        2 items left
+      </span>
+    <ul class="filters">
+      <li><a href="#/all">All</a></li>
+      <li><a href="#/active">Active</a></li>
+      <li><a href="#/completed">Completed</a></li>
+    </ul>
+    <button class="clear-completed">
+        Clear completed
+    </button>
+  </footer>
+</template>
+
+<script>
+  export default {
+    name: 'footer',
+    data () {
+      return {
+        remain: '2 items left'
+      }
+    }
+  }
+</script>
+````
+
+组件定义好之后，我们需要在App.vue顶级组件中组合起来
+components/Todos/Todos.vue
+````html
+<template>
+
+  <section class="main">
+    <input class="toggle-all" type="checkbox">
+    <ul class="todo-list">
+    </ul>
+  </section>
+
+</template>
+
+<script>
+  export default {
+    name: 'todos'
+  }
+
+</script>
+````
+
+App.vue
+````html
+<template>
+  <div id="app" class="todoapp">
+    <Header />
+    <Todos />
+    <Footer />
+  </div>
+</template>
+
+<script>
+  import Header from './components/Header/Header'
+  import Footer from './components/Footer/Footer'
+  import Todos from './components/Todos/Todos'
+  export default {
+    name: 'app',
+    components: {
+      Header, Footer, Todos
+    }
+  }
+
+</script>
+
+````
+
+好了，我们运行一下项目看看效果
+````
+$ npm run dev
+````
+
+![demo](./static/images/06.png)
+
+基本框架是出来了，但是缺少样式，非常难看，我们把官方的todos的样式安装一下
+````
+npm install --save todomvc-app-css
+````
+如果需要import css，并打包成js，需要安装下面三个loader
+````
+cnpm install style-loader --save-dev
+cnpm install css-loader --save-dev
+cnpm install file-loader --save-dev
+````
+
+并且更改build/webpack.base.conf.js，让webpack支持读取css并打包成js
+````javascript
+// 在rules中增加一个loader
+{
+  test: /\\.css$/,
+  loader: 'style!css-loader'
+}
+````
+
+
+然后在App.vue中加上
+````html
+<style>
+  @import '../node_modules/todomvc-app-css/index.css'
+</style>
+````
+
+重新运行项目，发现官方的样式全都加上去啦，现在我们又学会了一种引入第三方css的方法
+![import](./static/images/07.png)
+
+现在我们打开浏览器控制台，发现了几个报错
+````
+Do not use built-in or reserved HTML elements as component id:
+````
+
+组件名字不要使用内置的或保留HTML元素为组件id,让我们修改App.vue的script部分如下
+````javascript
+<script>
+  import MyHeader from './components/Header/Header'
+  import MyFooter from './components/Footer/Footer'
+  import Todos from './components/Todos/Todos'
+  export default {
+    name: 'app',
+    components: {
+      MyHeader, MyFooter, Todos
+    }
+  }
+
+</script>
+````
 
