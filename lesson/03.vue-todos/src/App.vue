@@ -1,6 +1,6 @@
 <template>
   <div id="app" class="todoapp">
-    <MyHeader />
+    <MyHeader @addTodoHandle="addTodo"/>
     <Todos />
     <MyFooter />
   </div>
@@ -12,6 +12,17 @@
   import Todos from './components/Todos/Todos'
   export default {
     name: 'app',
+    data () {
+      return {
+        todos: [], // 存储所有todos
+        visibility: 'all' // 存储当前过滤条件
+      }
+    },
+    methods: {
+      addTodo (value) {
+        console.log(value)
+      }
+    },
     components: {
       MyHeader, MyFooter, Todos
     }

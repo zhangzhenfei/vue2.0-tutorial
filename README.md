@@ -362,14 +362,6 @@ cnpm install css-loader --save-dev
 cnpm install file-loader --save-dev
 ````
 
-并且更改build/webpack.base.conf.js，让webpack支持读取css并打包成js
-````javascript
-// 在rules中增加一个loader
-{
-  test: /\\.css$/,
-  loader: 'style!css-loader'
-}
-````
 
 
 然后在App.vue中加上
@@ -402,4 +394,120 @@ Do not use built-in or reserved HTML elements as component id:
 
 </script>
 ````
+
+现在我们开始思考Todos应用的状态数据，大概如下：
+````javascript
+{
+    todos: [], // 存储所有todos
+    visibility: 'all' // 存储当前过滤条件
+}
+````
+
+那么，我们就在App.vue中先把这些数据定义在data中
+
+> 注意，vue2.0中，组件的data定义只接受 `function`
+
+````javascript
+export default {
+    name: 'app',
+    data () {
+      return {
+        todos: [], // 存储所有todos
+        visibility: 'all' // 存储当前过滤条件
+      }
+    },
+    components: {
+      MyHeader, MyFooter, Todos
+    }
+  }
+````
+
+那么我们要怎么监听MyHeader的输入框，并且获取数据放入todos中呢，根据vue组件间的通信规则：
+
+> 在 Vue.js 中，父子组件的关系可以总结为 **props down, events up** 。父组件通过 **props** 向下传递数据给子组件，子组件通过 **events** 给父组件发送消息。
+
+首先改造Header组件，使其能够监听input的键盘回车时间，并且主动触发对应的自定义事件发送消息给父组件
+
+````html
+<template>
+  <header class="header">
+    <h1>todos</h1>
+    <input 
+      class="new-todo" 
+      autofocus 
+      autocomplete="off" 
+      placeholder="What needs to be done?" 
+      v-model="newTodo"
+      @keyup.enter="addTodo">
+  </header>
+</template>
+
+<script>
+  export default {
+    name: 'header',
+    data () {
+      return {
+        newTodo: '' // 使用v-model将input的vulue属性绑定到newTodo
+      }
+    },
+    methods: {
+      addTodo () {
+        // 主动触发addTodoHandle方法，'addTodoHandle'为向父组件传递的数据
+        this.$emit('addTodoHandle', this.newTodo) 
+      }
+    }
+  }
+</script>
+
+````
+
+
+
+我们需要把MyHeader组件绑定一个addTodoHandle事件，给App发送消息，App.vue
+
+````html
+<template>
+  <div id="app" class="todoapp">
+    <MyHeader @addTodoHandle="addTodo"/>
+    <Todos />
+    <MyFooter />
+  </div>
+</template>
+
+<script>
+  import MyHeader from './components/Header/Header'
+  import MyFooter from './components/Footer/Footer'
+  import Todos from './components/Todos/Todos'
+  export default {
+    name: 'app',
+    data () {
+      return {
+        todos: [], // 存储所有todos
+        visibility: 'all' // 存储当前过滤条件
+      }
+    },
+    methods: {
+      addTodo (value) {
+        console.log(value) // 输出看看子组件发送的消息内容
+      }
+    },
+    components: {
+      MyHeader, MyFooter, Todos
+    }
+  }
+
+</script>
+
+<style>
+  @import '../node_modules/todomvc-app-css/index.css'
+</style>
+
+
+````
+
+我们在template中加了`@addTodoHandle="addTodo"`监听了组件的addTodoHandle方法，绑定到App的methods中的addTodo方法，所以子组件使用`this.$emit('addTodoHandle')`会触发父组件的`addTodo`回调方法，addTodo方法中，我们将子组件emit的数据打印出来，现在运行程序，在input中输入一些内容，按回车可以看到控制台打印的数据。
+
+![addTodo](./static/images/08.png)
+
+
 
