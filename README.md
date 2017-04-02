@@ -595,7 +595,7 @@ resolve: {
     }
   },
 ````
-然后让Todos.vue测试一下，`watch`路由的变化，并打印出来
+然后让Todos.vue测试一下，当点击`footer`的过滤条件的时候，`watch`路由的变化，并打印出来
 
 ````javascript
   export default {
