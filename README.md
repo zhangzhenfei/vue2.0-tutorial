@@ -512,11 +512,11 @@ export default {
 
 现在我们思考一下，如何用路由来实现todos的过滤，需求，当我们点击footer的a标签的时候，需要动态的改变Todos.vue的渲染内容。
 
-那么根据第二节课程所学到的知识，我们可以把footer的标签当作一个router-link，作为路由的导航
+那么根据第二节课程所学到的知识，我们可以把`footer`的标签当作一个`router-link`，作为路由的导航。
 
 ><router-link> 组件支持用户在具有路由功能的应用中（点击）导航。 通过 to 属性指定目标地址，默认渲染成带有正确链接的 <a> 标签，可以通过配置 tag 属性生成别的标签.。另外，当目标路由成功激活时，链接元素自动设置一个表示激活的 CSS 类名。
 
-router-link组件最终编译出来的DOM是a标签，所以，我们改造一下Footer.vue其中的filters部分
+`router-link`组件最终编译出来的`DOM`是`a`标签，所以，我们改造一下`Footer.vue`其中的`filters`部分。
 ````html
 <ul class="filters">
   <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
@@ -584,7 +584,7 @@ export default new Router({
 })
 
 ````
-> 这里说明一下为啥import Todos 的路径使用@/components/Todos/Todos，这里@是当前项目的根路径，在项目的build/wepack.base.config.js中定义了别名
+> 这里说明一下为啥import Todos 的路径使用@/components/Todos/Todos，这里@是当前项目的根路径下的src文件夹，在项目的build/wepack.base.config.js中定义了别名。
 
 ````javascript
 resolve: {
