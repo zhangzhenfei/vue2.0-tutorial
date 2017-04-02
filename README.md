@@ -200,7 +200,7 @@ $ npm run dev
 ## lesson03.vue-todos
 这一节，将会一步一步从零开始，完成一个todos应用，这个也是官网的例子，当应用从简单变复杂，我们要怎么去实现呢，这里我们只使用vue和vue-router来实现todos的增删改查，使用vue-router实现todos的过滤功能。
 
-初始化应用并启动
+### 初始化应用
 
 ````
 $ cd lesson
@@ -351,6 +351,8 @@ $ npm run dev
 
 ![demo](./static/images/06.png)
 
+### 引入TODOMVC-APP-CSS 官方TODOMVC样式
+
 基本框架是出来了，但是缺少样式，非常难看，我们把官方的todos的样式安装一下
 ````
 npm install --save todomvc-app-css
@@ -361,8 +363,6 @@ cnpm install style-loader --save-dev
 cnpm install css-loader --save-dev
 cnpm install file-loader --save-dev
 ````
-
-
 
 然后在App.vue中加上
 ````html
@@ -381,19 +381,18 @@ Do not use built-in or reserved HTML elements as component id:
 
 组件名字不要使用内置的或保留HTML元素为组件id,让我们修改App.vue的script部分如下
 ````javascript
-<script>
-  import MyHeader from './components/Header/Header'
-  import MyFooter from './components/Footer/Footer'
-  import Todos from './components/Todos/Todos'
-  export default {
-    name: 'app',
-    components: {
-      MyHeader, MyFooter, Todos
-    }
+import MyHeader from './components/Header/Header'
+import MyFooter from './components/Footer/Footer'
+import Todos from './components/Todos/Todos'
+export default {
+  name: 'app',
+  components: {
+    MyHeader, MyFooter, Todos
   }
-
-</script>
+}
 ````
+
+### 父子组件通讯
 
 现在我们开始思考Todos应用的状态数据，大概如下：
 ````javascript
@@ -461,8 +460,6 @@ export default {
 
 ````
 
-
-
 我们需要把MyHeader组件绑定一个addTodoHandle事件，给App发送消息，App.vue
 
 ````html
@@ -509,6 +506,7 @@ export default {
 
 ![addTodo](./static/images/08.png)
 
+### 使用vue-router实现过滤功能
 
 现在我们思考一下，如何用路由来实现todos的过滤，需求，当我们点击footer的a标签的时候，需要动态的改变Todos.vue的渲染内容。
 
@@ -608,3 +606,5 @@ resolve: {
   }
 ````
 ![filter](./static/images/09.JPG)
+
+### 使用localStorage存储应用数据
