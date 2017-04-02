@@ -1,7 +1,8 @@
 <template>
   <div id="app" class="todoapp">
     <MyHeader @addTodoHandle="addTodo"/>
-    <Todos />
+    <!-- 路由匹配到的组件将渲染在这里 -->
+    <router-view></router-view>
     <MyFooter />
   </div>
 </template>
@@ -9,7 +10,7 @@
 <script>
   import MyHeader from './components/Header/Header'
   import MyFooter from './components/Footer/Footer'
-  import Todos from './components/Todos/Todos'
+  
   export default {
     name: 'app',
     data () {
@@ -24,7 +25,7 @@
       }
     },
     components: {
-      MyHeader, MyFooter, Todos
+      MyHeader, MyFooter
     }
   }
 

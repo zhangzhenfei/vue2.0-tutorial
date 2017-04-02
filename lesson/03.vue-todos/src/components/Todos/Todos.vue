@@ -1,7 +1,7 @@
 <template>
 
   <section class="main">
-    <input class="toggle-all" type="checkbox">
+    <input class="toggle-all" type="checkbox" >
     <ul class="todo-list">
     </ul>
   </section>
@@ -10,7 +10,11 @@
 
 <script>
   export default {
-    name: 'todos'
+    name: 'todos',
+    watch: {
+      '$route': function (to, from) {
+        console.log(to)
+      }
+    }
   }
-
 </script>
