@@ -854,7 +854,86 @@ computed: {
   }
 }
 ````
-
 #### 双击编辑 Todo
+对`Todos.vue`进行完善
+1. 首先我们需要一个data记录哪一个todo属于当前编辑状态，在data中增加`editedTodo: null`
+2. 在watchs增加以下四个方法，编辑Todo，移除Todo，完成编辑Todo，取消编辑Todo
+````javascript
+editTodo: function (todo) {
+  this.beforeEditCache = todo.title // 缓存编辑前title，在cancelEdit中会用到
+  this.editedTodo = todo
+},
+
+removeTodo: function (todo) {
+  this.todos.splice(this.todos.indexOf(todo), 1)
+},
+
+doneEdit: function (todo) {
+  if (!this.editedTodo) {
+    return
+  }
+  this.editedTodo = null
+  todo.title = todo.title.trim()
+  if (!todo.title) {
+    this.removeTodo(todo)
+  }
+},
+
+cancelEdit: function (todo) {
+  this.editedTodo = null
+  todo.title = this.beforeEditCache
+}
+````
+3. 修改templete部分
+````html
+<template>
+  <section class="main">
+    <input class="toggle-all" type="checkbox" >
+    <ul class="todo-list">
+      <li v-for="todo in filteredTodos"
+        class="todo"
+        :key="todo.id"
+        :class="{ completed: todo.completed, editing: todo == editedTodo }">
+        <div class="view">
+          <input class="toggle" type="checkbox" v-model="todo.completed">
+          <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
+          <button class="destroy"></button>
+        </div>
+        <input class="edit" type="text"
+          v-model="todo.title"
+          @blur="doneEdit(todo)"
+          @keyup.enter="doneEdit(todo)"
+          @keyup.esc="cancelEdit(todo)">
+      </li>
+    </ul>
+  </section>
+</template>
+````
+测试一下，编辑功能已经正常工作了，但是程序还有一个小缺陷，当双击`todo title`的时候，进入编辑模式，但是输入框`input`没有获取焦点，需要用鼠标获取焦点，比较不方便，如何让输入框进入编辑的时候可以自己获取焦点呢，我们知道在editTodo中，是操作不到DOM的，有没有其他办法呢，这里我们使用自定义指令来完成，在`Todos.vue`中增加自定义指令如下：
+````javascript
+directives: {
+  'todo-focus': function (el, binding) {
+    if (binding.value) {
+      el.focus()
+    }
+  }
+}
+````
+在`templete`的`input`中使用指令，条件是当todo是编辑状态
+````html
+<input class="edit" type="text"
+  v-model="todo.title"
+  v-todo-focus="todo == editedTodo"
+  @blur="doneEdit(todo)"
+  @keyup.enter="doneEdit(todo)"
+  @keyup.esc="cancelEdit(todo)">
+````
+
 #### 删除 Todo
+
+上一小节中我们已经完成对应的删除方法removeTodo，实现删除，我们直接绑定到对应的按钮即可，如下：
+````html
+<button class="destroy" @click="removeTodo(todo)"></button>
+````
+
 #### 快捷删除 Complete Todos

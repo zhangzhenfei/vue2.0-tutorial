@@ -5,12 +5,18 @@
       <li v-for="todo in filteredTodos"
         class="todo"
         :key="todo.id"
-        :class="{ completed: todo.completed }">
+        :class="{ completed: todo.completed, editing: todo == editedTodo }">
         <div class="view">
           <input class="toggle" type="checkbox" v-model="todo.completed">
-          <label>{{ todo.title }}</label>
-          <button class="destroy"></button>
+          <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
+          <button class="destroy" @click="removeTodo(todo)"></button>
         </div>
+        <input class="edit" type="text"
+          v-model="todo.title"
+          v-todo-focus="todo == editedTodo"
+          @blur="doneEdit(todo)"
+          @keyup.enter="doneEdit(todo)"
+          @keyup.esc="cancelEdit(todo)">
       </li>
     </ul>
   </section>
@@ -29,7 +35,8 @@
     data () {
       return {
         todos: Store.todos.fetch(),
-        filteredTodos: [] // 根据filter过滤后的todos
+        filteredTodos: [], // 根据filter过滤后的todos
+        editedTodo: null // 记录当前编辑的todo
       }
     },
     created () {
@@ -59,6 +66,39 @@
         const filterFun = filters[filter]
         if (!filterFun) return
         this.filteredTodos = filterFun(this.todos)
+      },
+
+      editTodo: function (todo) {
+        this.beforeEditCache = todo.title // 缓存编辑前title，在cancelEdit中会用到
+        this.editedTodo = todo
+      },
+
+      removeTodo: function (todo) {
+        this.todos.splice(this.todos.indexOf(todo), 1)
+      },
+
+      doneEdit: function (todo) {
+        if (!this.editedTodo) {
+          return
+        }
+        this.editedTodo = null
+        todo.title = todo.title.trim()
+        if (!todo.title) {
+          this.removeTodo(todo)
+        }
+      },
+
+      cancelEdit: function (todo) {
+        this.editedTodo = null
+        todo.title = this.beforeEditCache
+      }
+    },
+
+    directives: {
+      'todo-focus': function (el, binding) {
+        if (binding.value) {
+          el.focus()
+        }
       }
     }
   }
