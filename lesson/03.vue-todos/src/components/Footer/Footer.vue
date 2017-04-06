@@ -9,7 +9,7 @@
       <li><router-link to="/Active" active-class="selected" exact replace>Active</router-link></li>
       <li><router-link to="/Completed" active-class="selected" exact replace>Completed</router-link></li>
     </ul>
-    <button class="clear-completed">
+    <button class="clear-completed" @click="removeCompleted" v-show="todos.length > remaining">
         Clear completed
     </button>
   </footer>
@@ -19,7 +19,17 @@
   export default {
     name: 'footer',
     // 声明 props
-    props: ['remaining'],
+    props: ['todos'],
+    computed: {
+      remaining: function () {
+        return this.todos ? this.todos.filter(todo => !todo.completed).length : 0
+      }
+    },
+    methods: {
+      removeCompleted: function () {
+        this.$emit('removeCompletedHandle')
+      }
+    },
     filters: {
       pluralize: function (n) {
         return n === 1 ? 'item' : 'items'

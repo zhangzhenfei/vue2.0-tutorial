@@ -833,7 +833,12 @@ created () {
   export default {
     name: 'footer',
     // 声明 props
-    props: ['remaining'],
+    props: ['todos'],
+    computed: {
+      remaining: function () {
+        return this.todos.filter(todo => !todo.completed).length
+      }
+    },
     filters: {
       pluralize: function (n) {
         return n === 1 ? 'item' : 'items'
@@ -842,18 +847,11 @@ created () {
   }
 </script>
 ````
-改造`App.vue`，传递remaining到子组件
+改造`App.vue`，传递todos到子组件
 ````html
-<MyFooter :remaining="remaining"/>
+<MyFooter :todos="todos"/>
 ````
-定义计算属性
-````javascript
-computed: {
-  remaining: function () {
-    return this.todos.filter(todo => !todo.completed).length
-  }
-}
-````
+
 #### 双击编辑 Todo
 对`Todos.vue`进行完善
 1. 首先我们需要一个data记录哪一个todo属于当前编辑状态，在data中增加`editedTodo: null`
@@ -937,3 +935,30 @@ directives: {
 ````
 
 #### 快捷删除 Complete Todos
+首先，我们分析一下，`Footer.vue`中的`todos`是父组件`App.vue`传过去的，所以子类不能直接删除，需要在父组件`App.vue`定义对应的删除方法
+点击clear complete，首先需要定义一个删除的方法removeCompleted，这里需要注意的是，需要对原数组进行删除，对应的`watch`才会生效，如果直接替换this.todos，是不会触发todos的观察更新的
+````javascript
+removeCompleted: function () {
+  const completedTodos = this.todos.filter(todo => todo.completed)
+  completedTodos.forEach(todo => this.todos.splice(this.todos.indexOf(todo), 1))
+}
+````
+向子组件传递事件
+````html
+<MyFooter @removeCompletedHandle="removeCompleted" :todos="todos"/>
+````
+
+修改子组件`Footer.vue`，以支持对应的事件接口
+````javascript
+methods: {
+  removeCompleted: function () {
+    this.$emit('removeCompletedHandle')
+  }
+},
+````
+绑定方法到模板中，当有所有Todos大于未完成Todos时候显示`v-show="todos.length > remaining"`
+````html
+<button class="clear-completed" @click="removeCompleted" v-show="todos.length > remaining">
+  Clear completed
+</button>
+````

@@ -3,7 +3,7 @@
     <MyHeader @addTodoHandle="addTodo" />
     <!-- 路由匹配到的组件将渲染在这里 -->
     <router-view></router-view>
-    <MyFooter :remaining="remaining"/>
+    <MyFooter @removeCompletedHandle="removeCompleted" :todos="todos"/>
   </div>
 </template>
 
@@ -36,11 +36,10 @@
           title: value,
           completed: false
         })
-      }
-    },
-    computed: {
-      remaining: function () {
-        return this.todos ? this.todos.filter(todo => !todo.completed).length : 0
+      },
+      removeCompleted: function () {
+        const completedTodos = this.todos.filter(todo => todo.completed)
+        completedTodos.forEach(todo => this.todos.splice(this.todos.indexOf(todo), 1))
       }
     },
     // watch todos change for localStorage persistence
