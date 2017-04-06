@@ -607,4 +607,214 @@ resolve: {
 ````
 ![filter](./static/images/09.JPG)
 
+但是我们可以发现有一个问题，当我们点击`footer`过滤条件的时候，没有激活样式，经过翻阅`todomvc-app-css`的样式，发现激活样式是selected，而vue-router默认的激活样式如下
+> 默认值: "router-link-active"
+所以我们需要对`Footer.vue`做小小改动，在对应的`router-link`增加属性`active-class="selected"`支持激活样式
+````html
+<li><router-link to="/All" active-class="selected">All</router-link></li>
+<li><router-link to="/Active" active-class="selected">Active</router-link></li>
+<li><router-link to="/Completed" active-class="selected">Completed</router-link></li>
+````
+
+还有一个问题，访问应用默认的主页`localhost:8080`的时候，没有默认的indexRoute主页路由，我们想达到这样的需求，当进入默认主页的时候，让浏览器请求`localhost:8080/#/All`，即使用默认的All过滤，这时候我们需要让App.vue判断路由状态并跳转，在App.vue中script中，增加created的生命钩子
+````javascript
+created () {
+  let filter = this.$route.params.filter
+  if (!filter) {
+    this.$router.replace({ path: 'All' })
+  }
+},
+````
+现在我们打开`localhost:8080`，发现会自动定向到`localhost:8080/#/All`，但是`footer`的`react-link`并没有支持，阅读官方文档，发现需要修改`Footer.vue`做以下改动，增加`exact replace`支持路由根据当前链接点亮
+````html
+<li><router-link to="/All" active-class="selected" exact replace>All</router-link></li>
+<li><router-link to="/Active" active-class="selected" exact replace>Active</router-link></li>
+<li><router-link to="/Completed" active-class="selected" exact replace>Completed</router-link></li>
+````
+
 ### 使用localStorage存储应用数据
+现在我们程序已经支持根据路由来动态过滤`todos`，但是对应的新建`todo`，和历史`todos`还没实现，现在我们就来一步一步实现，首先在src下定义store文件夹，作为整个程序的状态存储库，src/store/index.js文件内容如下：
+````javascript
+const STORAGE_FILTER_KEY = 'VUE_FILTER'
+const STORAGE_TODOS_KEY = 'VUE_TODOS'
+
+export default {
+  filter: {
+    get: () => localStorage.getItem(STORAGE_FILTER_KEY),
+    save: (path) => localStorage.setItem(STORAGE_FILTER_KEY, path)
+  },
+  todos: {
+    fetch: () => JSON.parse(localStorage.getItem(STORAGE_TODOS_KEY)),
+    save: (todos) => (localStorage.setItem(STORAGE_TODOS_KEY, JSON.stringify(todos)))
+  }
+}
+````
+
+`store`内容很简单，包括两个部分的数据存储，一个是当前`filter`的`get/set`，另一个是`todos`的`get/set`，都是使用`localStorage`作为数据的存储，现在我们需要改造`App.vue`支持新建`todo`
+
+````html
+<script>
+  import uuid from 'uuid'
+  import MyHeader from './components/Header/Header'
+  import MyFooter from './components/Footer/Footer'
+  import Store from './store/index'
+  export default {
+    name: 'app',
+    data () {
+      return {
+        todos: Store.todos.fetch() // 存储所有todos
+      }
+    },
+    created () {
+      let filter = this.$route.params.filter
+      if (!filter) {
+        this.$router.replace({ path: 'All' })
+      }
+    },
+    methods: {
+      addTodo (value) {
+        value = value && value.trim()
+        if (!value) {
+          return
+        }
+        this.todos.push({
+          id: uuid(),
+          title: value,
+          completed: false
+        })
+      }
+    },
+    // watch todos change for localStorage persistence
+    watch: {
+      todos: {
+        handler: function (todos) {
+          Store.todos.save(todos)
+        },
+        deep: true
+      }
+    },
+    components: {
+      MyHeader, MyFooter
+    }
+  }
+
+</script>
+````
+代码说明：
+1. 首先data钩子函数对所有todos进行观察
+2. 当Header触发了addTodo方法，将新建的todo压入todos中
+3. app中watch钩子函数对todos进行深度的观察，当todos发生了变化，调用Store.todos.save保存最新的todos
+
+> 注意，addTodo中使用到了uuid()，这个包如果没有安装，需要安装一下 `npm i uuid --save`
+
+`Todos.vue`也需要从`Store`中获取最新的`todos`进行展示
+````html
+<template>
+  <section class="main">
+    <input class="toggle-all" type="checkbox" >
+    <ul class="todo-list">
+      <li v-for="todo in filteredTodos"
+        class="todo"
+        :key="todo.id"
+        :class="{ completed: todo.completed }">
+        <div class="view">
+          <input class="toggle" type="checkbox" v-model="todo.completed">
+          <label>{{ todo.title }}</label>
+          <button class="destroy"></button>
+        </div>
+      </li>
+    </ul>
+  </section>
+</template>
+
+<script>
+  import Store from '@/store/index'
+  // visibility filters
+  const filters = {
+    All: todos => todos,
+    Active: todos => (todos.filter(todo => !todo.completed)),
+    Completed: todos => (todos.filter(todo => todo.completed))
+  }
+  export default {
+    name: 'todos',
+    data () {
+      return {
+        filteredTodos: [] // 根据filter过滤后的todos
+      }
+    },
+    created () {
+      // 组件创建完后获取数据，
+      // 此时 data 已经被 observed 了
+      this.filterTodos()
+    },
+    watch: {
+       // 如果路由有变化，会再次执行该方法
+      '$route': 'filterTodos'
+    },
+    methods: {
+      filterTodos () {
+        let filter = this.$route.params.filter
+        if (!filter) return
+        const todos = Store.todos.fetch()
+        const filterFun = filters[filter]
+        if (!filterFun) return
+        this.filteredTodos = filterFun(todos)
+      }
+    }
+  }
+</script>
+````
+
+到此，我们newTodo的时候，todo会保存到浏览器缓存中，但是`Todos.vue`并不会实时观察Store中的todos，并重新渲染，所以我们需要在Store中增加一个数据更新的函数钩子
+````javascript
+const STORAGE_FILTER_KEY = 'VUE_FILTER'
+const STORAGE_TODOS_KEY = 'VUE_TODOS'
+const listeningUpdateHandle = [] // 观察需要更新的方法
+
+export default {
+  filter: {
+    get: () => localStorage.getItem(STORAGE_FILTER_KEY),
+    save: (path) => localStorage.setItem(STORAGE_FILTER_KEY, path)
+  },
+  todos: {
+    fetch: () => JSON.parse(localStorage.getItem(STORAGE_TODOS_KEY)),
+    save: (todos) => {
+      localStorage.setItem(STORAGE_TODOS_KEY, JSON.stringify(todos))
+      listeningUpdateHandle.forEach(fun => fun())
+    },
+    update: (callback) => {
+      listeningUpdateHandle.push(callback)
+    }
+  }
+}
+````
+
+并在`Todos.vue`的created生命周期钩子函数中对其进行观察，这显然是一个笨方法，等到下一个lesson，整合vuex我们再重构它
+````javascript
+created () {
+  // 组件创建完后获取数据，
+  // 此时 data 已经被 observed 了
+  this.filterTodos()
+  Store.todos.update(this.filterTodos.bind(this))
+},
+````
+
+现在我们需要改造一下Filter功能，我们希望默认跳转的不是`All`路由，而是用户上次点击的路由，这时候我们需要把当前路由信息保存下来,`Todos.vue`中对`route`进行观察
+````javascript
+watch: {
+  // 如果路由有变化，会再次执行该方法
+  '$route': function (to) {
+    Store.filter.save(to.params.filter)
+    this.filterTodos()
+  }
+}
+````
+`App.vue`中判断路由状态进行跳转
+````javascript
+created () {
+  let filter = this.$route.params.filter
+  if (!filter) {
+    this.$router.replace({ path: Store.filter.get() || 'All' })
+  }
+}
+````

@@ -23,6 +23,7 @@
     methods: {
       addTodo () {
         this.$emit('addTodoHandle', this.newTodo) // 主动触发addTodoHandle方法，'addTodoHandle'为向父组件传递的数据
+        this.newTodo = ''
       }
     }
   }
