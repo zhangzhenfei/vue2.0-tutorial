@@ -639,20 +639,29 @@ created () {
 ````javascript
 const STORAGE_FILTER_KEY = 'VUE_FILTER'
 const STORAGE_TODOS_KEY = 'VUE_TODOS'
+const MODEL = {
+  FILTER: localStorage.getItem(STORAGE_FILTER_KEY) || 'All',
+  TODOS: JSON.parse(localStorage.getItem(STORAGE_TODOS_KEY)) || []
+}
 
 export default {
   filter: {
-    get: () => localStorage.getItem(STORAGE_FILTER_KEY),
-    save: (path) => localStorage.setItem(STORAGE_FILTER_KEY, path)
+    get: () => MODEL.FILTER,
+    save: path => localStorage.setItem(STORAGE_FILTER_KEY, path)
   },
   todos: {
-    fetch: () => JSON.parse(localStorage.getItem(STORAGE_TODOS_KEY)),
-    save: (todos) => (localStorage.setItem(STORAGE_TODOS_KEY, JSON.stringify(todos)))
+    fetch: () => MODEL.TODOS,
+    save: () => {
+      localStorage.setItem(STORAGE_TODOS_KEY, JSON.stringify(MODEL.TODOS))
+    }
   }
 }
+
 ````
 
 `store`内容很简单，包括两个部分的数据存储，一个是当前`filter`的`get/set`，另一个是`todos`的`get/set`，都是使用`localStorage`作为数据的存储，现在我们需要改造`App.vue`支持新建`todo`
+
+> 为什么需要store，因为`App.vue`和`Todos.vue`无法直接通过router共享数据`todos`，所以我们把该部分数据抽离到`store`统一维护，避免后面组件增加的时候，组件和组件之间的数据交织
 
 ````html
 <script>
@@ -690,7 +699,7 @@ export default {
     watch: {
       todos: {
         handler: function (todos) {
-          Store.todos.save(todos)
+          Store.todos.save()
         },
         deep: true
       }
@@ -705,7 +714,7 @@ export default {
 代码说明：
 1. 首先data钩子函数对所有todos进行观察
 2. 当Header触发了addTodo方法，将新建的todo压入todos中
-3. app中watch钩子函数对todos进行深度的观察，当todos发生了变化，调用Store.todos.save保存最新的todos
+3. app中watch钩子函数对todos进行深度的观察，当todos发生了变化，调用Store.todos.save保存
 
 > 注意，addTodo中使用到了uuid()，这个包如果没有安装，需要安装一下 `npm i uuid --save`
 
@@ -741,6 +750,7 @@ export default {
     name: 'todos',
     data () {
       return {
+        todos: Store.todos.fetch(),
         filteredTodos: [] // 根据filter过滤后的todos
       }
     },
@@ -751,54 +761,30 @@ export default {
     },
     watch: {
        // 如果路由有变化，会再次执行该方法
-      '$route': 'filterTodos'
+      '$route': function (to) {
+        Store.filter.save(to.params.filter)
+        this.filterTodos()
+      },
+      // 观察todos，如果todos有变化，重新执行过滤方法
+      todos: {
+        handler: function (todos) {
+          Store.todos.save()
+          this.filterTodos()
+        },
+        deep: true
+      }
     },
     methods: {
       filterTodos () {
         let filter = this.$route.params.filter
         if (!filter) return
-        const todos = Store.todos.fetch()
         const filterFun = filters[filter]
         if (!filterFun) return
-        this.filteredTodos = filterFun(todos)
+        this.filteredTodos = filterFun(this.todos)
       }
     }
   }
 </script>
-````
-
-到此，我们newTodo的时候，todo会保存到浏览器缓存中，但是`Todos.vue`并不会实时观察Store中的todos，并重新渲染，所以我们需要在Store中增加一个数据更新的函数钩子
-````javascript
-const STORAGE_FILTER_KEY = 'VUE_FILTER'
-const STORAGE_TODOS_KEY = 'VUE_TODOS'
-const listeningUpdateHandle = [] // 观察需要更新的方法
-
-export default {
-  filter: {
-    get: () => localStorage.getItem(STORAGE_FILTER_KEY),
-    save: (path) => localStorage.setItem(STORAGE_FILTER_KEY, path)
-  },
-  todos: {
-    fetch: () => JSON.parse(localStorage.getItem(STORAGE_TODOS_KEY)),
-    save: (todos) => {
-      localStorage.setItem(STORAGE_TODOS_KEY, JSON.stringify(todos))
-      listeningUpdateHandle.forEach(fun => fun())
-    },
-    update: (callback) => {
-      listeningUpdateHandle.push(callback)
-    }
-  }
-}
-````
-
-并在`Todos.vue`的created生命周期钩子函数中对其进行观察，这显然是一个笨方法，等到下一个lesson，整合vuex我们再重构它
-````javascript
-created () {
-  // 组件创建完后获取数据，
-  // 此时 data 已经被 observed 了
-  this.filterTodos()
-  Store.todos.update(this.filterTodos.bind(this))
-},
 ````
 
 现在我们需要改造一下Filter功能，我们希望默认跳转的不是`All`路由，而是用户上次点击的路由，这时候我们需要把当前路由信息保存下来,`Todos.vue`中对`route`进行观察
@@ -816,7 +802,7 @@ watch: {
 created () {
   let filter = this.$route.params.filter
   if (!filter) {
-    this.$router.replace({ path: Store.filter.get() || 'All' })
+    this.$router.replace({ path: Store.filter.get() })
   }
 }
 ````
@@ -869,7 +855,6 @@ computed: {
 }
 ````
 
-#### 修改Active Todo -> Complete Todo
 #### 双击编辑 Todo
 #### 删除 Todo
 #### 快捷删除 Complete Todos

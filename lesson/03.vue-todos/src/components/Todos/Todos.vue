@@ -28,6 +28,7 @@
     name: 'todos',
     data () {
       return {
+        todos: Store.todos.fetch(),
         filteredTodos: [] // 根据filter过滤后的todos
       }
     },
@@ -35,23 +36,29 @@
       // 组件创建完后获取数据，
       // 此时 data 已经被 observed 了
       this.filterTodos()
-      Store.todos.update(this.filterTodos.bind(this))
     },
     watch: {
        // 如果路由有变化，会再次执行该方法
       '$route': function (to) {
         Store.filter.save(to.params.filter)
         this.filterTodos()
+      },
+      // 观察todos，如果todos有变化，重新执行过滤方法
+      todos: {
+        handler: function (todos) {
+          Store.todos.save()
+          this.filterTodos()
+        },
+        deep: true
       }
     },
     methods: {
       filterTodos () {
         let filter = this.$route.params.filter
         if (!filter) return
-        const todos = Store.todos.fetch()
         const filterFun = filters[filter]
         if (!filterFun) return
-        this.filteredTodos = filterFun(todos)
+        this.filteredTodos = filterFun(this.todos)
       }
     }
   }

@@ -22,7 +22,7 @@
     created () {
       let filter = this.$route.params.filter
       if (!filter) {
-        this.$router.replace({ path: Store.filter.get() || 'All' })
+        this.$router.replace({ path: Store.filter.get() })
       }
     },
     methods: {
@@ -40,14 +40,14 @@
     },
     computed: {
       remaining: function () {
-        return this.todos.filter(todo => !todo.completed).length
+        return this.todos ? this.todos.filter(todo => !todo.completed).length : 0
       }
     },
     // watch todos change for localStorage persistence
     watch: {
       todos: {
         handler: function (todos) {
-          Store.todos.save(todos)
+          Store.todos.save()
         },
         deep: true
       }
