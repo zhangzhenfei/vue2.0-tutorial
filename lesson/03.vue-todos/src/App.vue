@@ -3,7 +3,7 @@
     <MyHeader @addTodoHandle="addTodo" />
     <!-- 路由匹配到的组件将渲染在这里 -->
     <router-view></router-view>
-    <MyFooter />
+    <MyFooter :remaining="remaining"/>
   </div>
 </template>
 
@@ -36,6 +36,11 @@
           title: value,
           completed: false
         })
+      }
+    },
+    computed: {
+      remaining: function () {
+        return this.todos.filter(todo => !todo.completed).length
       }
     },
     // watch todos change for localStorage persistence

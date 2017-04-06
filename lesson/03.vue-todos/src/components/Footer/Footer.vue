@@ -1,8 +1,8 @@
 <template>
   <footer class="footer">
     <span class="todo-count">
-        2 items left
-      </span>
+      <strong>{{ remaining }}</strong> {{ remaining | pluralize }} left
+    </span>
     <ul class="filters">
       <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
       <li><router-link to="/All" active-class="selected" exact replace>All</router-link></li>
@@ -18,9 +18,11 @@
 <script>
   export default {
     name: 'footer',
-    data () {
-      return {
-        remain: '2 items left'
+    // 声明 props
+    props: ['remaining'],
+    filters: {
+      pluralize: function (n) {
+        return n === 1 ? 'item' : 'items'
       }
     }
   }
