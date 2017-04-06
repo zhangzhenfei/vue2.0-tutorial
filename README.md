@@ -609,7 +609,9 @@ resolve: {
 
 但是我们可以发现有一个问题，当我们点击`footer`过滤条件的时候，没有激活样式，经过翻阅`todomvc-app-css`的样式，发现激活样式是selected，而vue-router默认的激活样式如下
 > 默认值: "router-link-active"
+
 所以我们需要对`Footer.vue`做小小改动，在对应的`router-link`增加属性`active-class="selected"`支持激活样式
+
 ````html
 <li><router-link to="/All" active-class="selected">All</router-link></li>
 <li><router-link to="/Active" active-class="selected">Active</router-link></li>
