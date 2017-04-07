@@ -962,3 +962,85 @@ methods: {
   Clear completed
 </button>
 ````
+## lesson04.vue-vuex
+
+> Vuex 是一个专为 Vue.js 应用程序开发的状态管理模式。它采用集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。Vuex 也集成到 Vue 的官方调试工具 devtools extension，提供了诸如零配置的 time-travel 调试、状态快照导入导出等高级调试功能。
+
+这一节教程中，我们基于`03.vue-todos`将把`vue`的状态管理插件`vuex`整合进来，复制项目`03.vue-todos`改名为`04.vue-vuex-todos`
+
+加入vuex插件库
+````
+cnpm i vuex --save
+````
+
+为了不影响`lesson03`的`store`实现，我们在`src`中新建了一个`vuex-store`文件夹，作为vuex的store存储库
+`src/vuex-store/index.js`
+````javascript
+import Vue from 'vue'
+import Vuex from 'vuex'
+import uuid from 'uuid'
+
+Vue.use(Vuex)
+
+export default new Vuex.Store({
+  state: {
+    todos: [] // 存储所有todos
+  },
+  mutations: {
+    ADD_TODO (state, todoContent) {
+      state.todos.push({
+        id: uuid(),
+        title: todoContent,
+        completed: false
+      })
+    },
+    REMOVE_TODO (state, todo) {
+      var todos = state.todos
+      todos.splice(todos.indexOf(todo), 1)
+    },
+    COMPLETE_TODO (state, todo) {
+      todo.completed = !todo.completed
+    }
+  },
+  actions: {
+    addTodo ({ commit }, todoContent) {
+      commit('ADD_TODO', todoContent)
+    },
+    removeTodo ({ commit }, todo) {
+      commit('REMOVE_TODO', todo)
+    },
+    completeTodo ({ commit }, todo) {
+      commit('COMPLETE_TODO', todo)
+    }
+
+  },
+  getters: {
+    todos: state => state.todos.filter((todo) => { return !todo.completed }),
+    completedTodos: state => state.todos.filter((todo) => { return todo.completed })
+  }
+
+})
+````
+
+> Vuex 通过 store 选项，提供了一种机制将状态从根组件『注入』到每一个子组件中（需调用 Vue.use(Vuex)）
+
+src/main.js
+````javascript
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue'
+import App from './App'
+import router from './router'
+import store from './vuex-store/index'
+
+Vue.config.productionTip = false
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#app',
+  router,
+  store,
+  template: '<App/>',
+  components: { App }
+})
+````
