@@ -968,10 +968,13 @@ methods: {
 
 这一节教程中，我们基于`03.vue-todos`将把`vue`的状态管理插件`vuex`整合进来，复制项目`03.vue-todos`改名为`04.vue-vuex-todos`
 
-加入vuex插件库
+加入vuex插件库和vuex-router-sync（把route路由的状态同步到vuex的state中，方便跟踪路由的状态）
 ````
 cnpm i vuex --save
+cnpm i vuex-router-sync --save
 ````
+
+这一节不对vuex的api做深入解析，若遇到不理解的地方还请翻阅[官方文档](https://vuex.vuejs.org/zh-cn/)
 
 为了不影响`lesson03`的`store`实现，我们在`src`中新建了一个`vuex-store`文件夹，作为vuex的store存储库
 `src/vuex-store/index.js`
@@ -983,6 +986,7 @@ import uuid from 'uuid'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
+  strict: process.env.NODE_ENV !== 'production',
   state: {
     todos: [] // 存储所有todos
   },
@@ -1021,6 +1025,9 @@ export default new Vuex.Store({
 
 })
 ````
+
+`strict: process.env.NODE_ENV !== 'production'`
+在严格模式下，无论何时发生了状态变更且不是由 mutation 函数引起的，将会抛出错误。这能保证所有的状态变更都能被调试工具跟踪到。
 
 > Vuex 通过 store 选项，提供了一种机制将状态从根组件『注入』到每一个子组件中（需调用 Vue.use(Vuex)）
 
