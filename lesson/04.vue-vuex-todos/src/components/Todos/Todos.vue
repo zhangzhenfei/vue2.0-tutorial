@@ -4,7 +4,7 @@
     <ul class="todo-list">
       <li v-for="todo in filteredTodos" class="todo" :key="todo.id" :class="{ completed: todo.completed, editing: todo == editedTodo }">
         <div class="view">
-          <input class="toggle" type="checkbox" v-model="todo.completed">
+          <input class="toggle" type="checkbox" @click="toggleTodo(todo)">
           <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
           <button class="destroy" @click="removeTodo(todo)"></button>
         </div>
@@ -49,6 +49,10 @@
       editTodo: function (todo) {
         this.beforeEditCache = todo.title // 缓存编辑前title，在cancelEdit中会用到
         this.editedTodo = todo
+      },
+
+      toggleTodo: function (todo) {
+        this.$store.dispatch('toggleTodo', todo)
       },
 
       removeTodo: function (todo) {

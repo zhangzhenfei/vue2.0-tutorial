@@ -23,9 +23,11 @@ export default new Vuex.Store({
       var todos = state.todos
       todos.splice(todos.indexOf(todo), 1)
     },
+    TOGGLE_TODO (state, todo) {
+      todo.completed = !todo.completed
+    },
     CLEAR_COMPLETE_TODOS (state) {
-      const completedTodos = state.todos.filter(todo => todo.completed)
-      completedTodos.forEach(todo => state.todos.splice(state.todos.indexOf(todo), 1))
+      state.todos = state.todos.filter(todo => !todo.completed)
     }
   },
   actions: {
@@ -35,10 +37,12 @@ export default new Vuex.Store({
     removeTodo ({ commit }, todo) {
       commit('REMOVE_TODO', todo)
     },
+    toggleTodo ({ commit }, todo) {
+      commit('TOGGLE_TODO', todo)
+    },
     clearCompleted ({ commit }) {
       commit('CLEAR_COMPLETE_TODOS')
     }
-
   },
   getters: {
     total: state => state.todos.length,
